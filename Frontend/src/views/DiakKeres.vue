@@ -17,34 +17,46 @@
         Search
       </button>
     </div>
+
     <table class="table table-striped table-hover">
       <thead>
         <tr>
           <th>#</th>
-          <th>osztalyId</th>
+          <th>osztálynév</th>
           <th>nev</th>
           <th>neme</th>
           <th>született</th>
           <th>helység</th>
           <th>ösztöndíj</th>
           <th>átlag</th>
-          <th>osztálynév</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in rows" :key="row.id">
+        <tr v-for="row in paginatedRows" :key="row.id">
           <td>{{ row.id }}</td>
-          <td>{{ row.osztalyId }}</td>
+          <td>{{ getClassName(row.osztalyId) }}</td>
           <td>{{ row.nev }}</td>
-          <td>{{ row.neme }}</td>
+          <td>{{ row.neme ? "Férfi" : "Nő" }}</td>
           <td>{{ row.szuletett }}</td>
           <td>{{ row.helyseg }}</td>
           <td>{{ row.osztondij }}</td>
           <td>{{ row.atlag }}</td>
-          <td>{{ row.osztalynev }}</td>
         </tr>
       </tbody>
     </table>
+
+    <div class="d-flex justify-content-center my-3">
+      <div class="pagination-container d-flex">
+        <div
+          v-for="page in totalPages"
+          :key="page"
+          @click="goToPage(page)"
+          :class="['page-box', { 'active-page': currentPage === page }]"
+        >
+          {{ page }}
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -56,27 +68,75 @@ export default {
     return {
       urlApi: BASE_URL,
       rows: [],
-      searchInput: null,
-      searchWord: null,
+      osztalyok: [],
+      searchInput: "",
+      searchWord: "",
+      currentPage: 1,
+      itemsPerPage: 10,
+      totalItems: 0,
     };
+  },
+  computed: {
+    paginatedRows() {
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+      const endIndex = startIndex + this.itemsPerPage;
+      return this.rows.slice(startIndex, endIndex);
+    },
+
+    totalPages() {
+      return Math.ceil(this.rows.length / this.itemsPerPage);
+    },
+  },
+  watch: {
+    searchInput(newSearchInput) {
+      this.searchWord = newSearchInput;
+      this.currentPage = 1;
+      this.getDiaks();
+    },
   },
   mounted() {
     this.getDiaks();
+    this.getOsztalyok();
   },
-  watch: {},
   methods: {
     async getDiaks() {
-      const url = `${this.urlApi}/queryDiakKeres/${this.searchWord}`;
+      let url = `${this.urlApi}/diaks`;
+      if (this.searchWord) {
+        url = `${this.urlApi}/queryDiakKeres/${this.searchWord}`;
+      }
       const headers = {
         Accept: "application/json",
       };
       const response = await axios.get(url, headers);
       this.rows = response.data.data;
-      console.log(this.rows);
+    },
+    async getOsztalyok() {
+      let url = `${this.urlApi}/osztalies`;
+      const headers = {
+        Accept: "application/json",
+      };
+      const response = await axios.get(url, headers);
+      this.osztalyok = response.data.data;
     },
     onClickSearch() {
       this.searchWord = this.searchInput;
+      this.currentPage = 1;
       this.getDiaks();
+    },
+    changePage(pageNumber) {
+      this.currentPage = pageNumber;
+      this.getDiaks();
+    },
+
+    getClassName(osztalyId) {
+      const osztaly = this.osztalyok.find(
+        (osztaly) => osztaly.id === osztalyId
+      );
+      return osztaly ? osztaly.osztalyNev : "Nincs";
+    },
+
+    goToPage(page) {
+      this.currentPage = page;
     },
   },
 };
