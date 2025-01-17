@@ -70,9 +70,34 @@
                 <td data-label="Átlag">
                   <span>{{ diak.atlag }}</span>
                 </td>
-                <td data-label="Sportok" style="text-wrap: nowrap">
-                  <span>Még nem jó</span>
+                <td
+                  data-label="Sportok"
+                  style="text-wrap: nowrap"
+                  @mouseenter="showSports(diak.id)"
+                  @mouseleave="hideSports"
+                  class="sportokLista"
+                >
+                  <span class="sportokRows">{{
+                    getSportokSzama(diak.id)
+                  }}</span>
+                  <div v-if="hoveredDiakId === diak.id" class="sport-tooltip">
+                    <!-- <ul>
+                      <li
+                        v-for="(sport, index) in getSportsForStudent(diak.id)"
+                        :key="index"
+                      >
+                        {{ sport }}
+                      </li>
+                    </ul> -->
+                    <span
+                      v-for="(sport, index) in getSportsForStudent(diak.id)"
+                      :key="index"
+                    >
+                      {{ sport }}
+                    </span>
+                  </div>
                 </td>
+
                 <td class="text-nowrap text-center">
                   <OperationsCrud
                     @onClickDeleteButton="onClickDeleteButton"
@@ -165,19 +190,20 @@ export default {
       diak: new Diak(uniqid()),
       selectedRowDiakId: null,
       messageYesNo: null,
+      hoveredDiakId: null,
       state: "Read", //CRUD: Create, Read, Update, Delete
       title: null,
       yes: null,
       no: null,
       size: null,
       osztalyok: [],
-      sports: [],
+      sportolasok: [],
     };
   },
   mounted() {
     this.getOsztalyok();
     this.getDiaks();
-    this.getSports();
+    this.getSportolasok();
     this.modal = new bootstrap.Modal("#modal", {
       keyboard: false,
     });
@@ -204,13 +230,13 @@ export default {
       this.osztalyok = response.data.data;
     },
 
-    async getSports() {
-      const url = `${this.urlApi}/sports`;
+    async getSportolasok() {
+      const url = `${this.urlApi}/queryDiakokSportokkal`;
       const headers = {
         Accept: "application/json",
       };
       const response = await axios.get(url, { headers });
-      this.sports = response.data.data;
+      this.sportolasok = response.data.data;
     },
 
     async getDiaks() {
@@ -228,9 +254,25 @@ export default {
       return osztaly ? osztaly.osztalyNev : "Ismeretlen osztály";
     },
 
-    getSportNameById(id) {
-      const sport = this.sports.find((s) => s.id === id);
-      return sport ? sport.sportNev : "Nincs";
+    getSportokSzama(id) {
+      const sportolas = this.sportolasok.find(
+        (sportolas) => sportolas.id === id
+      );
+      return sportolas ? sportolas.sportokSzama : 0;
+    },
+
+    showSports(diakId) {
+      this.hoveredDiakId = diakId;
+    },
+    hideSports() {
+      this.hoveredDiakId = null;
+    },
+
+    getSportsForStudent(diakId) {
+      const sports = this.sportolasok.find(
+        (sportolas) => sportolas.id === diakId
+      );
+      return sports ? sports.sportok : [];
     },
 
     formatOsztondij(ossz) {
@@ -373,4 +415,26 @@ export default {
 </script>
     
 <style scoped>
+.sportokLista {
+  position: relative;
+}
+
+.sport-tooltip {
+  position: absolute;
+  left: 100px;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  text-align: left;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  max-width: 150px;
+  width: 140px;
+  z-index: 1000;
+}
+
+.sport-tooltip span {
+  text-wrap: wrap;
+}
 </style>

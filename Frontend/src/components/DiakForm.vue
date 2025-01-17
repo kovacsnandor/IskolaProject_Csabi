@@ -37,7 +37,15 @@
       />
     </div>
 
-    <div class="col-md-3 position-relative">
+    <div class="col-md-2 position-relative">
+      <label for="neme" class="form-label">Neme:</label>
+      <select class="form-control" id="neme" required v-model="diakForm.neme">
+        <option :value="true">Férfi</option>
+        <option :value="false">Nő</option>
+      </select>
+    </div>
+
+    <div class="col-md-4 position-relative">
       <label for="helyseg" class="form-label">Helység:</label>
       <input
         type="text"
@@ -60,14 +68,6 @@
     </div>
 
     <div class="col-md-2 position-relative">
-      <label for="neme" class="form-label">Neme:</label>
-      <select class="form-control" id="neme" required v-model="diakForm.neme">
-        <option :value="true">Férfi</option>
-        <option :value="false">Nő</option>
-      </select>
-    </div>
-
-    <div class="col-md-2 position-relative">
       <label for="osztalyId" class="form-label">Osztály:</label>
       <select
         class="form-control"
@@ -82,14 +82,6 @@
         >
           {{ osztaly.osztalyNev }}
         </option>
-      </select>
-    </div>
-
-    <div class="col-md-5 position-relative">
-      <label for="osztalyId" class="form-label">Sportok:</label>
-      <select class="form-control" id="sportok" required>
-        <option>Nincs sport kiválasztva</option>
-        <option>asd</option>
       </select>
     </div>
     <button type="submit" class="btn btn-success">Mentés</button>

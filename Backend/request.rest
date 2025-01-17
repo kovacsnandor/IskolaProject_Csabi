@@ -67,7 +67,7 @@ Authorization: Bearer {{token}}
 get {{host}}/api/
 
 ### teszt
-get {{host}}/api/diakSportjai/5766
+get {{host}}/api/queryDiakokSportokkal
 
 
 # ---- sports ----

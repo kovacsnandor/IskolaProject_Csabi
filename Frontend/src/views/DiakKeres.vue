@@ -9,13 +9,6 @@
         aria-label="Search"
         v-model="searchInput"
       />
-      <button
-        class="btn btn-outline-success"
-        type="submit"
-        @click="onClickSearch()"
-      >
-        Search
-      </button>
     </div>
 
     <table class="table table-striped table-hover">
@@ -33,14 +26,14 @@
       </thead>
       <tbody>
         <tr v-for="row in paginatedRows" :key="row.id">
-          <td>{{ row.id }}</td>
-          <td>{{ getClassName(row.osztalyId) }}</td>
-          <td>{{ row.nev }}</td>
-          <td>{{ row.neme ? "Férfi" : "Nő" }}</td>
-          <td>{{ row.szuletett }}</td>
-          <td>{{ row.helyseg }}</td>
-          <td>{{ row.osztondij }}</td>
-          <td>{{ row.atlag }}</td>
+          <td data-label="ID">{{ row.id }}</td>
+          <td data-label="Osztály">{{ getClassName(row.osztalyId) }}</td>
+          <td data-label="Név">{{ row.nev }}</td>
+          <td data-label="Nem">{{ row.neme ? "Férfi" : "Nő" }}</td>
+          <td data-label="Születési idő">{{ row.szuletett }}</td>
+          <td data-label="Helység">{{ row.helyseg }}</td>
+          <td data-label="Ösztöndíj">{{ row.osztondij }}</td>
+          <td data-label="Átlag" style="justify-content: space-between;">{{ row.atlag }}</td>
         </tr>
       </tbody>
     </table>
@@ -110,6 +103,7 @@ export default {
       const response = await axios.get(url, headers);
       this.rows = response.data.data;
     },
+
     async getOsztalyok() {
       let url = `${this.urlApi}/osztalies`;
       const headers = {
@@ -118,11 +112,7 @@ export default {
       const response = await axios.get(url, headers);
       this.osztalyok = response.data.data;
     },
-    onClickSearch() {
-      this.searchWord = this.searchInput;
-      this.currentPage = 1;
-      this.getDiaks();
-    },
+    
     changePage(pageNumber) {
       this.currentPage = pageNumber;
       this.getDiaks();
