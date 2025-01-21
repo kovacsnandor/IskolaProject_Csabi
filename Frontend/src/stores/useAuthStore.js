@@ -21,7 +21,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = token;
     },
     clearStoredData() {
-      localStosessionStoragerage.removeItem('id');
+      sessionStorage.removeItem('id');
       sessionStorage.removeItem('user');
       sessionStorage.removeItem('currentToken');
       this.id = null;

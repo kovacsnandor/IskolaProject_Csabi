@@ -35,19 +35,12 @@
                 :key="diak.id"
                 @click="onClickTr(diak.id)"
                 :class="{
-                  updating: loading,
                   active: diak.id === selectedRowDiakId,
+                  updating: loading,
                 }"
               >
                 <td data-label="ID">
                   <span>{{ diak.id }}</span>
-                  <span
-                    class="spinner-border m-0 p-0"
-                    role="status"
-                    v-if="diak.id === selectedRowDiakId && loading"
-                  >
-                    <span class="visually-hidden m-0">Loading...</span>
-                  </span>
                 </td>
                 <td data-label="OsztályNév">
                   <span>{{ getOsztalyNevById(diak.osztalyId) }}</span>
