@@ -272,7 +272,7 @@ export default {
     },
 
     onClickTr(id) {
-      this.selectedRowId = this.selectedRowId === id ? null : id;
+      this.selectedRowId = id;
     },
 
     onClickCloseErrorMessage() {
