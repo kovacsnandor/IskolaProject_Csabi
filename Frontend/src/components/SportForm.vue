@@ -7,7 +7,7 @@
         class="form-control"
         id="sportNev"
         required
-        v-model="sportForm.sportNev"
+        v-model="itemForm.sportNev"
       />
     </div>
     <button type="submit" class="btn btn-success">Mentés</button>
@@ -16,11 +16,11 @@
 
 <script>
 export default {
-  props: ["sportForm"],
-  emits: ["saveSport"],
+  props: ["itemForm"],
+  emits: ["saveItem"],
   methods: {
     onClickSubmit() {
-      this.$emit("saveSport", this.sportForm);
+      this.$emit("saveItem", this.sportForm);
     },
   },
 };

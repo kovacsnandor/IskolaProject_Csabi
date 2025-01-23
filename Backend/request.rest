@@ -109,6 +109,14 @@ Authorization: Bearer {{token}}
 # ---- /sports ----
 
 
+### delete product by id
+DELETE {{host}}/api/sports/2
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{token}}
+# ---- /sports ----
+
+
 # ---- osztalies ----
 ### get osztalies
 get {{host}}/api/osztalies

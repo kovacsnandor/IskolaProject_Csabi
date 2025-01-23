@@ -1,60 +1,44 @@
 <template>
   <div>
-    <h1 class="text-center my-4">Sportok</h1>
-    <div
-      class="alert alert-danger alert-dismissible fade show"
-      role="alert"
-      v-if="errorMessages"
-    >
-      {{ errorMessages }}
-      <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="alert"
-        aria-label="Close"
-        @click="onClickCloseErrorMessage()"
-      ></button>
-    </div>
+    <h1 class="text-center my-4">Osztályok</h1>
     <div class="container">
       <div class="row d-flex justify-content-center">
         <div
           class="spinner-border m-0 p-0 text-center"
           role="status"
-          v-if="items.length == 0"
+          v-if="osztalyok.length == 0"
         >
           <span class="visually-hidden m-0">Loading...</span>
         </div>
 
-        <div class="col-12 col-lg-10 tabla-container" v-if="items.length > 0">
+        <div class="col-12 col-lg-10  tabla-container" v-if="osztalyok.length > 0">
           <table
             class="table table-bordered table-hover table-striped shadow-sm rounded"
           >
             <thead class="table-dark">
-              <!-- Módosítás -->
               <tr>
                 <th>#</th>
-                <th>Osztály Név</th>
+                <th>osztályNév</th>
                 <th class="text-center">Műveletek</th>
               </tr>
             </thead>
             <tbody>
               <tr
-                v-for="item in paginatedCollections"
-                :key="item.id"
-                @click="onClickTr(item.id)"
+                v-for="osztaly in paginatedOsztalyok"
+                :key="osztaly.id"
+                @click="onClickTr(osztaly.id)"
                 :class="{
                   updating: loading,
-                  active: item.id === selectedRowId,
+                  active: osztaly.id === selectedRowOsztalyId,
                 }"
               >
-              <!-- Módosítás -->
-                <td data-label="ID">{{ item.id }}</td>
+                <td data-label="ID">{{ osztaly.id }}</td>
                 <td data-label="Név">
-                  {{ item.osztalyNev }}
+                  {{ osztaly.osztalyNev }}
                   <span
                     class="spinner-border m-0 p-0"
                     role="status"
-                    v-if="item.id === selectedRowId && loading"
+                    v-if="osztaly.id === selectedRowOsztalyId && loading"
                   >
                     <span class="visually-hidden m-0">Loading...</span>
                   </span>
@@ -64,7 +48,7 @@
                     @onClickDeleteButton="onClickDeleteButton"
                     @onClickUpdate="onClickUpdate"
                     @onClickCreate="onClickCreate"
-                    :data="item"
+                    :data="osztaly"
                   />
                 </td>
               </tr>
@@ -83,13 +67,14 @@
             {{ messageYesNo }}
           </div>
 
-          <ItemForm
+          <OsztalyForm
             v-if="state == 'Create' || state == 'Update'"
-            :itemForm="item"
-            @saveItem="saveItemHandler"
+            :osztalyForm="osztaly"
+            @saveOsztaly="saveOsztalyHandler"
           />
         </Modal>
       </div>
+
       <div class="d-flex justify-content-center my-3">
         <div class="pagination-container d-flex">
           <div
@@ -107,8 +92,7 @@
 </template>
     
 <script>
-//Módosítás
-class Item {
+class Osztaly {
   constructor(id = null, osztalyNev = null) {
     this.id = id;
     this.osztalyNev = osztalyNev;
@@ -116,181 +100,163 @@ class Item {
 }
 import { BASE_URL } from "../helpers/baseUrls";
 import { useAuthStore } from "@/stores/useAuthStore.js";
-import ItemForm from "@/components/OsztalyForm.vue";
+import OsztalyForm from "@/components/OsztalyForm.vue";
 import OperationsCrud from "@/components/OperationsCrud.vue";
 import axios from "axios";
 import * as bootstrap from "bootstrap";
-import { errorMessages } from "vue/compiler-sfc";
+import uniqid from "uniqid";
 export default {
-  components: { ItemForm, OperationsCrud },
+  components: { OsztalyForm, OperationsCrud },
   data() {
     return {
-      //Módosítás
-      urlApi: `${BASE_URL}/osztalies`,
+      urlApi: BASE_URL,
       stateAuth: useAuthStore(),
-      items: [],
+      osztalyok: [],
       loading: false,
       modal: null,
       currentPage: 1,
       itemsPerPage: 5,
-      item: new Item(),
-      selectedRowId: null,
+      osztaly: new Osztaly(uniqid()),
+      selectedRowOsztalyId: null,
       messageYesNo: null,
       state: "Read", //CRUD: Create, Read, Update, Delete
       title: null,
       yes: null,
       no: null,
       size: null,
-      errorMessages: null,
     };
   },
   mounted() {
-    this.getCollections();
+    this.getOsztalyok();
     this.modal = new bootstrap.Modal("#modal", {
       keyboard: false,
     });
   },
   computed: {
-    paginatedCollections() {
+    paginatedOsztalyok() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
-      return this.items.slice(start, end);
+      return this.osztalyok.slice(start, end);
     },
     totalPages() {
-      return Math.ceil(this.items.length / this.itemsPerPage);
+      return Math.ceil(this.osztalyok.length / this.itemsPerPage);
     },
   },
   methods: {
-    async getCollections() {
-      const url = this.urlApi;
+    async getOsztalyok() {
+      const url = `${this.urlApi}/osztalies`;
       const headers = {
         Accept: "application/json",
       };
-      try {
-        const response = await axios.get(url, headers);
-        this.items = response.data.data;
-        this.loading = false;
-      } catch (error) {
-        this.errorMessages = "Szerver hiba";
-      }
+      const response = await axios.get(url, headers);
+      this.osztalyok = response.data.data;
+      this.loading = false;
     },
 
-    async deleteItemById() {
-      const id = this.selectedRowId;
+    async deleteOsztalyById() {
+      const id = this.selectedRowOsztalyId;
       const token = this.stateAuth.token;
 
-      const url = `${this.urlApi}/${id}`;
+      const url = `${this.urlApi}/osztalies/${id}`;
       const headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       };
 
-      try {
-        const response = await axios.delete(url, { headers });
-        // this.items = this.items.filter((sport) => sport.id !== id);
-        this.getCollections();
-      } catch (error) {
-        console.log("a sport nem torolheto");
-        this.errorMessages =
-          "A sport nem törölhető, mert már ilyet sportolnak a diákok.";
-      }
+      // await axios.delete(url, { headers });
+      // const response = await axios.get(`${this.urlApi}/sports`, { headers });
+
+      const response = await axios.delete(url, { headers });
+      this.osztalyok = this.osztalyok.filter((osztaly) => osztaly.id !== id);
     },
 
-    async createItem() {
+    async createOsztaly() {
       const token = this.stateAuth.token;
-      const url = this.urlApi;
+      const url = `${this.urlApi}/osztalies`;
       const headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       };
 
-        //Módosítás
       const data = {
-        osztalyNev: this.item.osztalyNev,
+        osztalyNev: this.osztaly.osztalyNev,
       };
-      try {
-        const response = await axios.post(url, data, { headers });
-        // this.items.push(response.data.data);
-        this.getCollections();
-      } catch (error) {
-        this.errorMessages = "A bővítés nem sikerült.";
-      }
+
+      const response = await axios.post(url, data, { headers });
+      this.osztalyok.push(response.data.data);
+
       this.state = "Read";
     },
 
-    async updateItem() {
+    async updateOsztaly() {
       this.loading = true;
-      const id = this.selectedRowId;
-      const url = `${this.urlApi}/${id}`;
+      const id = this.osztaly.id;
+      const url = `${this.urlApi}/osztalies/${id}`;
       const headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.stateAuth.token}`,
       };
 
-
-      //Módosítás
       const data = {
-        osztalyNev: this.item.osztalyNev,
+        osztalyNev: this.osztaly.osztalyNev,
       };
-      try {
-        const response = await axios.patch(url, data, { headers });
-        this.getCollections();
-      } catch (error) {
-        this.errorMessages = "A módosítás nem sikerült."
-      }
+
+      const response = await axios.patch(url, data, { headers });
+      this.getOsztalyok();
+
       this.state = "Read";
     },
 
     yesEventHandler() {
       if (this.state == "Delete") {
-        this.deleteItemById();
+        this.deleteOsztalyById();
         this.goToPage(1);
       }
     },
-    
-    onClickDeleteButton(item) {
+
+    onClickDeleteButton(osztaly) {
       this.state = "Delete";
       this.title = "Törlés";
-      this.messageYesNo = `Valóban törölni akarod a(z) ${item.osztalyNev} nevű elemet?`;
+      this.messageYesNo = `Valóban törölni akarod a(z) ${osztaly.osztalyNev} nevű osztályt?`;
       this.yes = "Igen";
       this.no = "Nem";
       this.size = null;
     },
 
-    onClickUpdate(item) {
+    onClickUpdate(osztaly) {
       this.state = "Update";
-      this.title = "Adat módosítása";
+      this.title = "Osztály módosítása";
       this.yes = null;
       this.no = "Mégsem";
       this.size = "lg";
-      this.item = { ...item };
+      this.osztaly = { ...osztaly };
     },
 
     onClickCreate() {
-      this.title = "Új adat bevitele";
+      this.title = "Új osztály létrehozása";
       this.yes = null;
       this.no = "Mégsem";
       this.size = "lg";
       this.state = "Create";
-      this.item = new Item();
+      this.osztaly = new Osztaly(uniqid());
     },
 
     onClickTr(id) {
-      this.selectedRowId = this.selectedRowId === id ? null : id;
+      if (this.selectedRowDiakId === id) {
+        this.selectedRowDiakId = null;
+      } else {
+        this.selectedRowDiakId = id;
+      }
     },
 
-    onClickCloseErrorMessage() {
-      this.errorMessages = null;
-    },
-
-    saveItemHandler() {
+    saveOsztalyHandler() {
       if (this.state === "Update") {
-        this.updateItem();
+        this.updateOsztaly();
       } else if (this.state === "Create") {
-        this.createItem();
+        this.createOsztaly();
       }
 
       this.modal.hide();
@@ -304,4 +270,5 @@ export default {
 </script>
     
 <style scoped>
+
 </style>

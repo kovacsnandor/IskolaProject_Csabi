@@ -7,7 +7,7 @@
         class="form-control"
         id="osztalyNev"
         required
-        v-model="osztalyForm.osztalyNev"
+        v-model="itemForm.osztalyNev"
       />
     </div>
     <button type="submit" class="btn btn-success">Mentés</button>
@@ -16,11 +16,11 @@
 
 <script>
 export default {
-  props: ["osztalyForm"],
-  emits: ["saveOsztaly"],
+  props: ["itemForm"],
+  emits: ["saveItem"],
   methods: {
     onClickSubmit() {
-      this.$emit("saveOsztaly", this.osztalyForm);
+      this.$emit("saveItem", this.osztalyForm);
     },
   },
 };

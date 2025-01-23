@@ -1,17 +1,31 @@
 <template>
   <div>
     <h1 class="text-center my-4">Sportok</h1>
+    <div
+      class="alert alert-danger alert-dismissible fade show"
+      role="alert"
+      v-if="errorMessages"
+    >
+      {{ errorMessages }}
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+        @click="onClickCloseErrorMessage()"
+      ></button>
+    </div>
     <div class="container">
       <div class="row d-flex justify-content-center">
         <div
           class="spinner-border m-0 p-0 text-center"
           role="status"
-          v-if="sports.length == 0"
+          v-if="items.length == 0"
         >
           <span class="visually-hidden m-0">Loading...</span>
         </div>
 
-        <div class="col-12 col-lg-10 tabla-container" v-if="sports.length > 0">
+        <div class="col-12 col-lg-10 tabla-container" v-if="items.length > 0">
           <table
             class="table table-bordered table-hover table-striped shadow-sm rounded"
           >
@@ -24,21 +38,21 @@
             </thead>
             <tbody>
               <tr
-                v-for="sport in paginatedSportok"
-                :key="sport.id"
-                @click="onClickTr(sport.id)"
+                v-for="item in paginatedCollections"
+                :key="item.id"
+                @click="onClickTr(item.id)"
                 :class="{
                   updating: loading,
-                  active: sport.id === selectedRowSportId,
+                  active: item.id === selectedRowId,
                 }"
               >
-                <td data-label="ID">{{ sport.id }}</td>
+                <td data-label="ID">{{ item.id }}</td>
                 <td data-label="Név">
-                  {{ sport.sportNev }}
+                  {{ item.sportNev }}
                   <span
                     class="spinner-border m-0 p-0"
                     role="status"
-                    v-if="sport.id === selectedRowSportId && loading"
+                    v-if="item.id === selectedRowId && loading"
                   >
                     <span class="visually-hidden m-0">Loading...</span>
                   </span>
@@ -48,7 +62,7 @@
                     @onClickDeleteButton="onClickDeleteButton"
                     @onClickUpdate="onClickUpdate"
                     @onClickCreate="onClickCreate"
-                    :data="sport"
+                    :data="item"
                   />
                 </td>
               </tr>
@@ -69,8 +83,8 @@
 
           <SportForm
             v-if="state == 'Create' || state == 'Update'"
-            :sportForm="sport"
-            @saveSport="saveSportHandler"
+            :itemForm="item"
+            @saveItem="saveItemHandler"
           />
         </Modal>
       </div>
@@ -91,7 +105,7 @@
 </template>
     
 <script>
-class Sport {
+class Item {
   constructor(id = null, sportNev = null) {
     this.id = id;
     this.sportNev = sportNev;
@@ -103,76 +117,85 @@ import SportForm from "@/components/SportForm.vue";
 import OperationsCrud from "@/components/OperationsCrud.vue";
 import axios from "axios";
 import * as bootstrap from "bootstrap";
-import uniqid from "uniqid";
+import { errorMessages } from "vue/compiler-sfc";
 export default {
   components: { SportForm, OperationsCrud },
   data() {
     return {
-      urlApi: BASE_URL,
+      urlApi: `${BASE_URL}/sports`,
       stateAuth: useAuthStore(),
-      sports: [],
+      items: [],
       loading: false,
       modal: null,
       currentPage: 1,
       itemsPerPage: 5,
-      sport: new Sport(uniqid()),
-      selectedRowSportId: null,
+      item: new Item(),
+      selectedRowId: null,
       messageYesNo: null,
       state: "Read", //CRUD: Create, Read, Update, Delete
       title: null,
       yes: null,
       no: null,
       size: null,
+      errorMessages: null,
     };
   },
   mounted() {
-    this.getSports();
+    this.getCollections();
     this.modal = new bootstrap.Modal("#modal", {
       keyboard: false,
     });
   },
   computed: {
-    paginatedSportok() {
+    paginatedCollections() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
-      return this.sports.slice(start, end);
+      return this.items.slice(start, end);
     },
     totalPages() {
-      return Math.ceil(this.sports.length / this.itemsPerPage);
+      return Math.ceil(this.items.length / this.itemsPerPage);
     },
   },
   methods: {
-    async getSports() {
-      const url = `${this.urlApi}/sports`;
+    async getCollections() {
+      const url = this.urlApi;
       const headers = {
         Accept: "application/json",
       };
-      const response = await axios.get(url, headers);
-      this.sports = response.data.data;
-      this.loading = false;
+      try {
+        const response = await axios.get(url, headers);
+        this.items = response.data.data;
+        this.loading = false;
+      } catch (error) {
+        this.errorMessages = "Szerver hiba";
+      }
     },
 
-    async deleteSportById() {
-      const id = this.selectedRowSportId;
+    async deleteItemById() {
+      const id = this.selectedRowId;
       const token = this.stateAuth.token;
 
-      const url = `${this.urlApi}/sports/${id}`;
+      const url = `${this.urlApi}/${id}`;
       const headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       };
 
-      // await axios.delete(url, { headers });
-      // const response = await axios.get(`${this.urlApi}/sports`, { headers });
-
-      const response = await axios.delete(url, { headers });
-      this.sports = this.sports.filter((sport) => sport.id !== id);
+      try {
+        const response = await axios.delete(url, { headers });
+        // this.items = this.items.filter((sport) => sport.id !== id);
+        this.getCollections();
+      } catch (error) {
+        console.log("a sport nem torolheto");
+        this.errorMessages =
+          "A sport nem törölhető, mert már ilyet sportolnak a diákok.";
+      }
     },
 
-    async createSport() {
+    async createItem() {
       const token = this.stateAuth.token;
-      const url = `${this.urlApi}/sports`;
+      const url = this.urlApi;
       const headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
@@ -180,19 +203,22 @@ export default {
       };
 
       const data = {
-        sportNev: this.sport.sportNev,
+        sportNev: this.item.sportNev,
       };
-
-      const response = await axios.post(url, data, { headers });
-      this.sports.push(response.data.data);
-
+      try {
+        const response = await axios.post(url, data, { headers });
+        // this.items.push(response.data.data);
+        this.getCollections();
+      } catch (error) {
+        this.errorMessages = "A bővítés nem sikerült.";
+      }
       this.state = "Read";
     },
 
-    async updateSport() {
+    async updateItem() {
       this.loading = true;
-      const id = this.sport.id;
-      const url = `${this.urlApi}/sports/${id}`;
+      const id = this.selectedRowId;
+      const url = `${this.urlApi}/${id}`;
       const headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
@@ -200,62 +226,64 @@ export default {
       };
 
       const data = {
-        sportNev: this.sport.sportNev,
+        sportNev: this.item.sportNev,
       };
-
-      const response = await axios.patch(url, data, { headers });
-      this.getSports();
-
+      try {
+        const response = await axios.patch(url, data, { headers });
+        this.getCollections();
+      } catch (error) {
+        this.errorMessages = "A módosítás nem sikerült."
+      }
       this.state = "Read";
     },
 
     yesEventHandler() {
       if (this.state == "Delete") {
-        this.deleteSportById();
+        this.deleteItemById();
         this.goToPage(1);
       }
     },
 
-    onClickDeleteButton(sport) {
+    onClickDeleteButton(item) {
       this.state = "Delete";
       this.title = "Törlés";
-      this.messageYesNo = `Valóban törölni akarod a(z) ${sport.sportNev} nevű sportot?`;
+      this.messageYesNo = `Valóban törölni akarod a(z) ${item.sportNev} nevű sportot?`;
       this.yes = "Igen";
       this.no = "Nem";
       this.size = null;
     },
 
-    onClickUpdate(sport) {
+    onClickUpdate(item) {
       this.state = "Update";
       this.title = "Sport módosítása";
       this.yes = null;
       this.no = "Mégsem";
       this.size = "lg";
-      this.sport = { ...sport };
+      this.item = { ...item };
     },
 
     onClickCreate() {
-      this.title = "Új sport létrehozása";
+      this.title = "Új adat bevitele";
       this.yes = null;
       this.no = "Mégsem";
       this.size = "lg";
       this.state = "Create";
-      this.sport = new Sport(uniqid());
+      this.item = new Item();
     },
 
     onClickTr(id) {
-      if (this.selectedRowDiakId === id) {
-        this.selectedRowDiakId = null;
-      } else {
-        this.selectedRowDiakId = id;
-      }
+      this.selectedRowId = this.selectedRowId === id ? null : id;
     },
 
-    saveSportHandler() {
+    onClickCloseErrorMessage() {
+      this.errorMessages = null;
+    },
+
+    saveItemHandler() {
       if (this.state === "Update") {
-        this.updateSport();
+        this.updateItem();
       } else if (this.state === "Create") {
-        this.createSport();
+        this.createItem();
       }
 
       this.modal.hide();
