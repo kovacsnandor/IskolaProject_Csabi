@@ -247,20 +247,6 @@ export default {
       return osztaly ? osztaly.osztalyNev : "Ismeretlen osztály";
     },
 
-    getSportokSzama(id) {
-      const sportolas = this.sportolasok.find(
-        (sportolas) => sportolas.id === id
-      );
-      return sportolas ? sportolas.sportokSzama : 0;
-    },
-
-    showSports(diakId) {
-      this.hoveredDiakId = diakId;
-    },
-    hideSports() {
-      this.hoveredDiakId = null;
-    },
-
     getSportsForStudent(diakId) {
       const sports = this.sportolasok.find(
         (sportolas) => sportolas.id === diakId
