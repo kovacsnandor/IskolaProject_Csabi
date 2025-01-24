@@ -14,7 +14,7 @@ class OsztalyController extends Controller
     public function index()
     {
         // $rows = Osztaly::all();
-        $rows = Osztaly::orderBy('id', 'asc')->get();
+        $rows = Osztaly::orderBy('osztalyNev', 'asc')->get();
         $data = [
             'message' => 'ok',
             'data' => $rows

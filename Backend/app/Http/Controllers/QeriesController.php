@@ -180,24 +180,26 @@ class QeriesController extends Controller
         return response()->json($data, JSON_UNESCAPED_UNICODE);
     }
 
-    public function queryDiakokSportokkal()
+    public function diakSportjai($id)
     {
-
-
-        $query = 'SELECT d.id, d.nev, d.neme, d.szuletett, d.helyseg, d.osztondij, d.atlag, o.osztalyNev, COUNT(s.id) as sportokSzama, IFNULL(GROUP_CONCAT(s.sportNev SEPARATOR ", "), "Nincs") AS sportok FROM diaks d
-            LEFT JOIN sportolas ss ON ss.diakokId = d.id
-            LEFT JOIN sports s ON ss.sportokId = s.id
-            INNER JOIN osztalies o ON d.osztalyId = o.id
-            GROUP by d.id, d.nev, d.neme, d.szuletett, d.helyseg, d.osztondij, d.atlag, o.osztalyNev';
-
-        $rows = DB::select($query);
-
+        // Használj idézőjeleket a SQL lekérdezéshez
+        $query = '
+        SELECT GROUP_CONCAT(ss.sportNev SEPARATOR ", ")  as valami
+        FROM sportolas s
+        INNER JOIN diaks d ON s.diakokId = d.id
+        INNER JOIN sports ss ON ss.id = s.sportokId
+        WHERE d.id = ?';
+    
+        // A paraméterek átadása tömbben
+        $rows = DB::select($query, [$id]);
+    
+        // Eredmény és válasz
         $data = [
             'message' => 'ok',
             'data' => $rows,
             'query' => $query
         ];
-
-        return response()->json($data, options: JSON_UNESCAPED_UNICODE);
+    
+        return response()->json($data, JSON_UNESCAPED_UNICODE);
     }
 }
