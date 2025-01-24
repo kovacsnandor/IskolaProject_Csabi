@@ -1,5 +1,6 @@
 <template>
   <form @submit.prevent="onClickSubmit" class="row g-4 needs-validation was-validated">
+    <p v-if="debug">{{ itemForm }}</p>
     <div class="col-md-8 position-relative">
       <label for="osztalyNev" class="form-label">osztalyNév:</label>
       <input
@@ -16,7 +17,7 @@
 
 <script>
 export default {
-  props: ["itemForm"],
+  props: ["itemForm", "debug"],
   emits: ["saveItem"],
   methods: {
     onClickSubmit() {

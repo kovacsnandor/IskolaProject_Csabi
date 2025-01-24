@@ -17,7 +17,7 @@
           >
             <thead class="table-dark">
               <tr>
-                <th>#</th>
+                <th v-if="debug">#</th>
                 <th>osztályNév</th>
                 <th>Név</th>
                 <th>Nem</th>
@@ -25,7 +25,6 @@
                 <th>Helység</th>
                 <th>Ösztöndíj</th>
                 <th>Átlag</th>
-                <th>Sportok</th>
                 <th class="text-center">Műveletek</th>
               </tr>
             </thead>
@@ -39,7 +38,7 @@
                   updating: loading,
                 }"
               >
-                <td data-label="ID">
+                <td data-label="ID" v-if="debug">
                   <span>{{ diak.id }}</span>
                 </td>
                 <td data-label="OsztályNév">
@@ -62,33 +61,6 @@
                 </td>
                 <td data-label="Átlag">
                   <span>{{ diak.atlag }}</span>
-                </td>
-                <td
-                  data-label="Sportok"
-                  style="text-wrap: nowrap"
-                  @mouseenter="showSports(diak.id)"
-                  @mouseleave="hideSports"
-                  class="sportokLista"
-                >
-                  <span class="sportokRows">{{
-                    getSportokSzama(diak.id)
-                  }}</span>
-                  <div v-if="hoveredDiakId === diak.id" class="sport-tooltip">
-                    <!-- <ul>
-                      <li
-                        v-for="(sport, index) in getSportsForStudent(diak.id)"
-                        :key="index"
-                      >
-                        {{ sport }}
-                      </li>
-                    </ul> -->
-                    <span
-                      v-for="(sport, index) in getSportsForStudent(diak.id)"
-                      :key="index"
-                    >
-                      {{ sport }}
-                    </span>
-                  </div>
                 </td>
 
                 <td class="text-nowrap text-center">
@@ -119,6 +91,7 @@
             v-if="state == 'Create' || state == 'Update'"
             :diakForm="diak"
             :osztalyok="osztalyok"
+            :debug="debug"
             @saveDiak="saveDiakHandler"
           />
         </Modal>
@@ -163,6 +136,7 @@ class Diak {
   }
 }
 import { BASE_URL } from "../helpers/baseUrls";
+import { DEBUG } from "../helpers/debug";
 import { useAuthStore } from "@/stores/useAuthStore.js";
 import DiakForm from "@/components/DiakForm.vue";
 import OperationsCrud from "@/components/OperationsCrud.vue";
@@ -190,13 +164,12 @@ export default {
       no: null,
       size: null,
       osztalyok: [],
-      sportolasok: [],
+      debug: DEBUG
     };
   },
   mounted() {
     this.getOsztalyok();
     this.getDiaks();
-    this.getSportolasok();
     this.modal = new bootstrap.Modal("#modal", {
       keyboard: false,
     });
@@ -223,15 +196,6 @@ export default {
       this.osztalyok = response.data.data;
     },
 
-    async getSportolasok() {
-      const url = `${this.urlApi}/queryDiakokSportokkal`;
-      const headers = {
-        Accept: "application/json",
-      };
-      const response = await axios.get(url, { headers });
-      this.sportolasok = response.data.data;
-    },
-
     async getDiaks() {
       const url = `${this.urlApi}/diaks`;
       const headers = {
@@ -245,13 +209,6 @@ export default {
     getOsztalyNevById(id) {
       const osztaly = this.osztalyok.find((osztaly) => osztaly.id === id);
       return osztaly ? osztaly.osztalyNev : "Ismeretlen osztály";
-    },
-
-    getSportsForStudent(diakId) {
-      const sports = this.sportolasok.find(
-        (sportolas) => sportolas.id === diakId
-      );
-      return sports ? sports.sportok : [];
     },
 
     formatOsztondij(ossz) {

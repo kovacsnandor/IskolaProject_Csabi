@@ -3,6 +3,7 @@
     @submit.prevent="onClickSubmit"
     class="row g-3 needs-validation was-validated"
   >
+  <p v-if="debug">{{ diakForm }}</p>
     <div class="col-md-4 position-relative">
       <label for="nev" class="form-label">Név:</label>
       <input
@@ -90,7 +91,7 @@
 
 <script>
 export default {
-  props: ["diakForm", "osztalyok"],
+  props: ["diakForm", "osztalyok", "debug"],
   emits: ["saveDiak"],
   computed: {
     formattedOsztondij() {

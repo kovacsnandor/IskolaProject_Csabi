@@ -22,7 +22,7 @@
             <thead class="table-dark">
               <!-- Módosítás -->
               <tr>
-                <th>#</th>
+                <th v-if="debug">#</th>
                 <th>Osztály Név</th>
                 <th class="text-center">Műveletek</th>
               </tr>
@@ -38,7 +38,7 @@
                 }"
               >
               <!-- Módosítás -->
-                <td data-label="ID">{{ item.id }}</td>
+                <td data-label="ID" v-if="debug">{{ item.id }}</td>
                 <td data-label="Név">
                   {{ item.osztalyNev }}
                   <span
@@ -76,6 +76,7 @@
           <ItemForm
             v-if="state == 'Create' || state == 'Update'"
             :itemForm="item"
+            :debug="debug"
             @saveItem="saveItemHandler"
           />
         </Modal>
@@ -105,13 +106,13 @@ class Item {
   }
 }
 import { BASE_URL } from "../helpers/baseUrls";
+import { DEBUG } from "../helpers/debug";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import { useAuthStore } from "@/stores/useAuthStore.js";
 import ItemForm from "@/components/OsztalyForm.vue";
 import OperationsCrud from "@/components/OperationsCrud.vue";
 import axios from "axios";
 import * as bootstrap from "bootstrap";
-import { errorMessages } from "vue/compiler-sfc";
 export default {
   components: { ItemForm, OperationsCrud, ErrorMessage },
   data() {
@@ -133,6 +134,7 @@ export default {
       no: null,
       size: null,
       errorMessages: null,
+      debug: DEBUG
     };
   },
   mounted() {

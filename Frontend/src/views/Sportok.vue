@@ -21,7 +21,7 @@
           >
             <thead class="table-dark">
               <tr>
-                <th>#</th>
+                <th v-if="debug">#</th>
                 <th>Sport Név</th>
                 <th class="text-center">Műveletek</th>
               </tr>
@@ -36,7 +36,7 @@
                   active: item.id === selectedRowId,
                 }"
               >
-                <td data-label="ID">{{ item.id }}</td>
+                <td data-label="ID" v-if="debug">{{ item.id }}</td>
                 <td data-label="Név">
                   {{ item.sportNev }}
                   <span
@@ -74,6 +74,7 @@
           <SportForm
             v-if="state == 'Create' || state == 'Update'"
             :itemForm="item"
+            :debug="debug"
             @saveItem="saveItemHandler"
           />
         </Modal>
@@ -102,13 +103,13 @@ class Item {
   }
 }
 import { BASE_URL } from "../helpers/baseUrls";
+import { DEBUG } from "../helpers/debug";
 import ErrorMessage from "@/components/ErrorMessage.vue";
 import { useAuthStore } from "@/stores/useAuthStore.js";
 import SportForm from "@/components/SportForm.vue";
 import OperationsCrud from "@/components/OperationsCrud.vue";
 import axios from "axios";
 import * as bootstrap from "bootstrap";
-import { errorMessages } from "vue/compiler-sfc";
 export default {
   components: { SportForm, OperationsCrud, ErrorMessage },
   data() {
@@ -129,6 +130,7 @@ export default {
       no: null,
       size: null,
       errorMessages: null,
+      debug: DEBUG
     };
   },
   mounted() {
