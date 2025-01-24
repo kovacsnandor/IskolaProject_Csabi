@@ -50,7 +50,7 @@
                 <td data-label="Név">
                   {{ item.sportNev }}
                   <span
-                    class="spinner-border m-0 p-0"
+                    class="spinner-border text-primary spinner-border-sm m-0 p-0"
                     role="status"
                     v-if="item.id === selectedRowId && loading"
                   >
