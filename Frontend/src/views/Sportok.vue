@@ -223,7 +223,7 @@ export default {
         const response = await axios.patch(url, data, { headers });
         this.getCollections();
       } catch (error) {
-        this.errorMessages = "A módosítás nem sikerült."
+        this.errorMessages = "A módosítás nem sikerült.";
       }
       this.state = "Read";
     },
@@ -267,7 +267,7 @@ export default {
     },
 
     onClickCloseErrorMessage() {
-      this.errorMessages = null;
+      this.errorMessages = null;      
       this.loading = false;
       this.state = "Read";
     },

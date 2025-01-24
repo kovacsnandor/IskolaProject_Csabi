@@ -1,8 +1,8 @@
 <template>
   <div
-    class="alert alert-danger alert-dismissible fade show"
+    class="alert alert-danger alert-dismissible"
     role="alert"
-    v-if="errorMessages"
+    v-show="errorMessages"
   >
     {{ errorMessages }}
     <button
@@ -22,7 +22,7 @@ export default {
     onClose() {
       this.$emit("close");
     },
-  },
+  }
 };
 </script>
 
