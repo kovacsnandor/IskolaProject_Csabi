@@ -1,21 +1,17 @@
 <template>
   <div>
     <h1 class="text-center my-4">Diákok</h1>
-    <ErrorMessage
-      :errorMessages="errorMessages"
-      @close="onClickCloseErrorMessage"
-    />
     <div class="container">
       <div class="row d-flex justify-content-center">
         <div
           class="spinner-border m-0 p-0 text-center"
           role="status"
-          v-if="items.length == 0"
+          v-if="diakok.length == 0"
         >
           <span class="visually-hidden m-0">Loading...</span>
         </div>
 
-        <div class="col-12 col-lg-12 tabla-container" v-if="items.length > 0">
+        <div class="col-12 col-lg-12 tabla-container" v-if="diakok.length > 0">
           <table
             class="table table-bordered table-hover table-striped shadow-sm rounded"
           >
@@ -34,51 +30,45 @@
             </thead>
             <tbody>
               <tr
-                v-for="item in paginatedCollections"
-                :key="item.id"
-                @click="onClickTr(item.id)"
+                v-for="diak in paginatedDiakok"
+                :key="diak.id"
+                @click="onClickTr(diak.id)"
                 :class="{
+                  active: diak.id === selectedRowDiakId,
                   updating: loading,
-                  active: item.id === selectedRowId,
                 }"
               >
-                <td data-label="ID" v-if="debug">{{ item.id }}</td>
+                <td data-label="ID" v-if="debug">
+                  <span>{{ diak.id }}</span>
+                </td>
                 <td data-label="OsztályNév">
-                  <span>{{ getOsztalyNevById(item.osztalyId) }}</span>
+                  <span>{{ getOsztalyNevById(diak.osztalyId) }}</span>
                 </td>
                 <td data-label="Név">
-                  <span
-                    >{{ item.nev }}
-                    <span
-                      class="spinner-border text-primary spinner-border-sm m-0 p-0"
-                      role="status"
-                      v-if="item.id === selectedRowId && loading"
-                    >
-                      <span class="visually-hidden m-0">Loading...</span>
-                    </span>
-                  </span>
+                  <span>{{ diak.nev }}</span>
                 </td>
                 <td data-label="Nem">
-                  <span>{{ item.neme ?? false ? "Férfi" : "Nő" }}</span>
+                  <span>{{ diak.neme ?? false ? "Férfi" : "Nő" }}</span>
                 </td>
                 <td data-label="Születési dátum">
-                  <span>{{ item.szuletett }}</span>
+                  <span>{{ diak.szuletett }}</span>
                 </td>
                 <td data-label="Helység">
-                  <span>{{ item.helyseg }}</span>
+                  <span>{{ diak.helyseg }}</span>
                 </td>
                 <td data-label="Ösztöndíj">
-                  <span>{{ formatOsztondij(item.osztondij) }}</span>
+                  <span>{{ formatOsztondij(diak.osztondij) }}</span>
                 </td>
                 <td data-label="Átlag">
-                  <span>{{ item.atlag }}</span>
+                  <span>{{ diak.atlag }}</span>
                 </td>
+
                 <td class="text-nowrap text-center">
                   <OperationsCrud
                     @onClickDeleteButton="onClickDeleteButton"
                     @onClickUpdate="onClickUpdate"
                     @onClickCreate="onClickCreate"
-                    :data="item"
+                    :data="diak"
                   />
                 </td>
               </tr>
@@ -99,12 +89,14 @@
 
           <DiakForm
             v-if="state == 'Create' || state == 'Update'"
-            :itemForm="item"
+            :diakForm="diak"
+            :osztalyok="osztalyok"
             :debug="debug"
-            @saveItem="saveItemHandler"
+            @saveDiak="saveDiakHandler"
           />
         </Modal>
       </div>
+
       <div class="d-flex justify-content-center my-3">
         <div class="pagination-container d-flex">
           <div
@@ -122,7 +114,7 @@
 </template>
     
 <script>
-class Item {
+class Diak {
   constructor(
     id = null,
     osztalyId = null,
@@ -145,202 +137,78 @@ class Item {
 }
 import { BASE_URL } from "../helpers/baseUrls";
 import { DEBUG } from "../helpers/debug";
-import ErrorMessage from "@/components/ErrorMessage.vue";
 import { useAuthStore } from "@/stores/useAuthStore.js";
 import DiakForm from "@/components/DiakForm.vue";
 import OperationsCrud from "@/components/OperationsCrud.vue";
 import axios from "axios";
 import * as bootstrap from "bootstrap";
+import uniqid from "uniqid";
 export default {
-  components: { DiakForm, OperationsCrud, ErrorMessage },
+  components: { DiakForm, OperationsCrud },
   data() {
     return {
-      urlApi: `${BASE_URL}/diaks`,
-      urlApiSport: `${BASE_URL}`,
+      urlApi: BASE_URL,
       stateAuth: useAuthStore(),
-      items: [],
+      diakok: [],
       loading: false,
       modal: null,
       currentPage: 1,
       itemsPerPage: 10,
-      item: new Item(),
-      selectedRowId: null,
+      diak: new Diak(uniqid()),
+      selectedRowDiakId: null,
       messageYesNo: null,
+      hoveredDiakId: null,
       state: "Read", //CRUD: Create, Read, Update, Delete
       title: null,
       yes: null,
       no: null,
       size: null,
-      errorMessages: null,
       osztalyok: [],
-      debug: DEBUG,
+      debug: DEBUG
     };
   },
   mounted() {
-    this.getCollections();
     this.getOsztalyok();
+    this.getDiaks();
     this.modal = new bootstrap.Modal("#modal", {
       keyboard: false,
     });
   },
+
   computed: {
-    paginatedCollections() {
+    paginatedDiakok() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
-      return this.items.slice(start, end);
+      return this.diakok.slice(start, end);
     },
     totalPages() {
-      return Math.ceil(this.items.length / this.itemsPerPage);
+      return Math.ceil(this.diakok.length / this.itemsPerPage);
     },
   },
+
   methods: {
-    async getCollections() {
-      const url = this.urlApi;
-      const headers = {
-        Accept: "application/json",
-      };
-      try {
-        const response = await axios.get(url, headers);
-        this.items = response.data.data;
-        this.loading = false;
-      } catch (error) {
-        this.errorMessages = "Szerver hiba";
-      }
-    },
-
-    async deleteItemById() {
-      const id = this.selectedRowId;
-      const token = this.stateAuth.token;
-
-      const url = `${this.urlApi}/${id}`;
-      const headers = {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-
-      try {
-        const response = await axios.delete(url, { headers });
-        // this.items = this.items.filter((sport) => sport.id !== id);
-        this.getCollections();
-      } catch (error) {
-        this.errorMessages =
-          "A diák nem törölhető";
-      }
-    },
-
-    async createItem() {
-      const token = this.stateAuth.token;
-      const url = this.urlApi;
-      const headers = {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      };
-
-      const data = {
-        osztalyId: this.item.osztalyId,
-        nev: this.item.nev,
-        neme: this.item.neme,
-        szuletett: this.item.szuletett,
-        helyseg: this.item.helyseg,
-        osztondij: this.item.osztondij,
-        atlag: this.item.atlag
-      };
-      try {
-        const response = await axios.post(url, data, { headers });
-        // this.items.push(response.data.data);
-        this.getCollections();
-      } catch (error) {
-        this.errorMessages = "A bővítés nem sikerült.";
-      }
-      this.state = "Read";
-    },
-
     async getOsztalyok() {
-      const url = `${this.urlApiSport}/queryOsztalynevIdvel`;
+      const url = `${this.urlApi}/queryOsztalynevIdvel`;
       const headers = {
         Accept: "application/json",
       };
-      const response = await axios.get(url, { headers });      
+      const response = await axios.get(url, { headers });
       this.osztalyok = response.data.data;
     },
 
-    async updateItem() {
-      this.loading = true;
-      const id = this.selectedRowId;
-      const url = `${this.urlApi}/${id}`;
+    async getDiaks() {
+      const url = `${this.urlApi}/diaks`;
       const headers = {
         Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.stateAuth.token}`,
       };
-
-      const data = {
-        osztalyId: this.item.osztalyId,
-        nev: this.item.nev,
-        neme: this.item.neme,
-        szuletett: this.item.szuletett,
-        helyseg: this.item.helyseg,
-        osztondij: this.item.osztondij,
-        atlag: this.item.atlag
-      };
-      try {
-        const response = await axios.patch(url, data, { headers });
-        this.getCollections();
-      } catch (error) {
-        this.errorMessages = "A módosítás nem sikerült.";
-      }
-      this.state = "Read";
-    },
-
-    yesEventHandler() {
-      if (this.state == "Delete") {
-        this.deleteItemById();
-        this.goToPage(1);
-      }
-    },
-
-    onClickDeleteButton(item) {
-      this.state = "Delete";
-      this.title = "Törlés";
-      this.messageYesNo = `Valóban törölni akarod a(z) ${item.nev} nevű sportot?`;
-      this.yes = "Igen";
-      this.no = "Nem";
-      this.size = null;
-    },
-
-    onClickUpdate(item) {
-      this.state = "Update";
-      this.title = "Sport módosítása";
-      this.yes = null;
-      this.no = "Mégsem";
-      this.size = "lg";
-      this.item = { ...item };
-    },
-
-    onClickCreate() {
-      this.title = "Új adat bevitele";
-      this.yes = null;
-      this.no = "Mégsem";
-      this.size = "lg";
-      this.state = "Create";
-      this.item = new Item();
-    },
-
-    onClickTr(id) {
-      this.selectedRowId = id;
-    },
-
-    onClickCloseErrorMessage() {
-      this.errorMessages = null;
+      const response = await axios.get(url, headers);
+      this.diakok = response.data.data;
       this.loading = false;
-      this.state = "Read";
     },
 
     getOsztalyNevById(id) {
       const osztaly = this.osztalyok.find((osztaly) => osztaly.id === id);
-      return osztaly ? osztaly.osztalyNev : id;
+      return osztaly ? osztaly.osztalyNev : "Ismeretlen osztály";
     },
 
     formatOsztondij(ossz) {
@@ -351,11 +219,125 @@ export default {
       );
     },
 
-    saveItemHandler() {
+    async deleteDiakById() {
+      const id = this.selectedRowDiakId;
+      const token = this.stateAuth.token;
+
+      const url = `${this.urlApi}/diaks/${id}`;
+      const headers = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
+      // await axios.delete(url, { headers });
+      // const response = await axios.get(`${this.urlApi}/sports`, { headers });
+
+      const response = await axios.delete(url, { headers });
+      this.diakok = this.diakok.filter((diak) => diak.id !== id);
+    },
+
+    async createDiak() {
+      const token = this.stateAuth.token;
+      const url = `${this.urlApi}/diaks`;
+      const headers = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
+      const data = {
+        osztalyId: this.diak.osztalyId,
+        nev: this.diak.nev,
+        neme: this.diak.neme,
+        szuletett: this.diak.szuletett,
+        helyseg: this.diak.helyseg,
+        osztondij: this.diak.osztondij,
+        atlag: this.diak.atlag,
+      };
+
+      const response = await axios.post(url, data, { headers });
+      this.diakok.push(response.data.data);
+
+      this.state = "Read";
+    },
+
+    async updateDiak() {
+      this.loading = true;
+      const id = this.diak.id;
+      const url = `${this.urlApi}/diaks/${id}`;
+      const headers = {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.stateAuth.token}`,
+      };
+
+      const data = {
+        osztalyId: this.diak.osztalyId,
+        nev: this.diak.nev,
+        neme: this.diak.neme,
+        szuletett: this.diak.szuletett,
+        helyseg: this.diak.helyseg,
+        osztondij: this.diak.osztondij,
+        atlag: this.diak.atlag,
+      };
+
+      const response = await axios.patch(url, data, { headers });
+      this.getDiaks();
+
+      this.state = "Read";
+    },
+
+    yesEventHandler() {
+      if (this.state == "Delete") {
+        this.deleteDiakById();
+        this.goToPage(1);
+      }
+    },
+
+    onClickDeleteButton(diak) {
+      this.state = "Delete";
+      this.title = "Törlés";
+      this.messageYesNo = `Valóban törölni akarod a(z) ${diak.nev} nevű diákot?`;
+      this.yes = "Igen";
+      this.no = "Nem";
+      this.size = null;
+    },
+
+    onClickUpdate(diak) {
+      this.state = "Update";
+      this.title = "Diák módosítása";
+      this.yes = null;
+      this.no = "Mégsem";
+      this.size = "lg";
+      this.diak = { ...diak };
+    },
+
+    onClickCreate() {
+      this.title = "Új diák létrehozása";
+      this.yes = null;
+      this.no = "Mégsem";
+      this.size = "lg";
+      this.state = "Create";
+      this.diak = new Diak(uniqid());
+    },
+
+    onClickTr(id) {
+      if (this.selectedRowDiakId === id) {
+        this.selectedRowDiakId = null;
+      } else {
+        this.selectedRowDiakId = id;
+      }
+    },
+
+    saveDiakHandler() {
       if (this.state === "Update") {
-        this.updateItem();
+        this.updateDiak();
       } else if (this.state === "Create") {
-        this.createItem();
+        this.createDiak();
+        setTimeout(() => {
+          this.goToPage(this.totalPages);
+        }, 1000);
       }
 
       this.modal.hide();
@@ -369,4 +351,26 @@ export default {
 </script>
     
 <style scoped>
+.sportokLista {
+  position: relative;
+}
+
+.sport-tooltip {
+  position: absolute;
+  left: 100px;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px;
+  text-align: left;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  max-width: 150px;
+  width: 140px;
+  z-index: 1000;
+}
+
+.sport-tooltip span {
+  text-wrap: wrap;
+}
 </style>

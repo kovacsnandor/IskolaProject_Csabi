@@ -180,7 +180,6 @@ export default {
         // this.items = this.items.filter((sport) => sport.id !== id);
         this.getCollections();
       } catch (error) {
-        console.log("a sport nem torolheto");
         this.errorMessages =
           "A sport nem törölhető, mert már ilyet sportolnak a diákok.";
       }

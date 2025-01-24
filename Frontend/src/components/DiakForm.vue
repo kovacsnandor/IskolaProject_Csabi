@@ -3,7 +3,7 @@
     @submit.prevent="onClickSubmit"
     class="row g-3 needs-validation was-validated"
   >
-  <p v-if="debug">{{ diakForm }}</p>
+  <p v-if="debug">{{ itemForm }}</p>
     <div class="col-md-4 position-relative">
       <label for="nev" class="form-label">Név:</label>
       <input
@@ -11,7 +11,7 @@
         class="form-control"
         id="nev"
         required
-        v-model="diakForm.nev"
+        v-model="itemForm.nev"
       />
     </div>
 
@@ -22,7 +22,7 @@
         class="form-control"
         id="atlag"
         required
-        v-model="diakForm.atlag"
+        v-model="itemForm.atlag"
       />
     </div>
 
@@ -40,7 +40,7 @@
 
     <div class="col-md-2 position-relative">
       <label for="neme" class="form-label">Neme:</label>
-      <select class="form-control" id="neme" required v-model="diakForm.neme">
+      <select class="form-control" id="neme" required v-model="itemForm.neme">
         <option :value="true">Férfi</option>
         <option :value="false">Nő</option>
       </select>
@@ -53,7 +53,7 @@
         class="form-control"
         id="helyseg"
         required
-        v-model="diakForm.helyseg"
+        v-model="itemForm.helyseg"
       />
     </div>
 
@@ -64,26 +64,8 @@
         class="form-control"
         id="szuletett"
         required
-        v-model="diakForm.szuletett"
+        v-model="itemForm.szuletett"
       />
-    </div>
-
-    <div class="col-md-2 position-relative">
-      <label for="osztalyId" class="form-label">Osztály:</label>
-      <select
-        class="form-control"
-        id="osztalyId"
-        required
-        v-model="diakForm.osztalyId"
-      >
-        <option
-          v-for="osztaly in osztalyok"
-          :key="osztaly.id"
-          :value="osztaly.id"
-        >
-          {{ osztaly.osztalyNev }}
-        </option>
-      </select>
     </div>
     <button type="submit" class="btn btn-success">Mentés</button>
   </form>
@@ -91,23 +73,23 @@
 
 <script>
 export default {
-  props: ["diakForm", "osztalyok", "debug"],
-  emits: ["saveDiak"],
+  props: ["itemForm", "osztalyok", "debug"],
+  emits: ["saveItem"],
   computed: {
     formattedOsztondij() {
-      if (!this.diakForm.osztondij) return "";
-      return this.diakForm.osztondij
+      if (!this.itemForm.osztondij) return "";
+      return this.itemForm.osztondij
         .toString()
         .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     },
   },
   methods: {
     onClickSubmit() {
-      this.$emit("saveDiak", this.diakForm);
+      this.$emit("saveItem", this.itemForm);
     },
     updateOsztondij(value) {
       const numericValue = parseFloat(value.replace(/[^0-9.]/g, ""));
-      this.diakForm.osztondij = isNaN(numericValue) ? 0 : numericValue;
+      this.itemForm.osztondij = isNaN(numericValue) ? 0 : numericValue;
     },
   },
 };
