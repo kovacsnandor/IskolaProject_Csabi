@@ -1,20 +1,10 @@
 <template>
   <div>
     <h1 class="text-center my-4">Sportok</h1>
-    <div
-      class="alert alert-danger alert-dismissible fade show"
-      role="alert"
-      v-if="errorMessages"
-    >
-      {{ errorMessages }}
-      <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="alert"
-        aria-label="Close"
-        @click="onClickCloseErrorMessage()"
-      ></button>
-    </div>
+    <ErrorMessage
+      :errorMessages="errorMessages"
+      @close="onClickCloseErrorMessage"
+    />
     <div class="container">
       <div class="row d-flex justify-content-center">
         <div
@@ -115,6 +105,7 @@ class Item {
   }
 }
 import { BASE_URL } from "../helpers/baseUrls";
+import ErrorMessage from "@/components/ErrorMessage.vue";
 import { useAuthStore } from "@/stores/useAuthStore.js";
 import ItemForm from "@/components/OsztalyForm.vue";
 import OperationsCrud from "@/components/OperationsCrud.vue";
@@ -122,7 +113,7 @@ import axios from "axios";
 import * as bootstrap from "bootstrap";
 import { errorMessages } from "vue/compiler-sfc";
 export default {
-  components: { ItemForm, OperationsCrud },
+  components: { ItemForm, OperationsCrud, ErrorMessage },
   data() {
     return {
       //Módosítás
@@ -284,6 +275,8 @@ export default {
 
     onClickCloseErrorMessage() {
       this.errorMessages = null;
+      this.loading = false;
+      this.state = "Read";
     },
 
     saveItemHandler() {
