@@ -31,7 +31,7 @@ Accept: application/json
 Authorization: Bearer {{token}}
 
 ### get user by id
-GET  {{host}}/api/users/25
+GET  {{host}}/api/users/26
 Accept: application/json
 Authorization: Bearer {{token}}
 
