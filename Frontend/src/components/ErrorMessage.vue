@@ -1,17 +1,10 @@
 <template>
   <div
-    class="alert alert-danger alert-dismissible"
+    class="alert alert-danger alert-dismissible fade show text-center"
     role="alert"
-    v-show="errorMessages"
+    v-if="errorMessages"
   >
-    {{ errorMessages }}
-    <button
-      type="button"
-      class="btn-close"
-      data-bs-dismiss="alert"
-      aria-label="Close"
-      @click="onClose"
-    ></button>
+      {{ errorMessages }}
   </div>
 </template>
 
@@ -22,7 +15,16 @@ export default {
     onClose() {
       this.$emit("close");
     },
-  }
+  },
+  watch: {
+    errorMessages(newVal) {
+      if (newVal) {
+        setTimeout(() => {
+          this.$emit("close");
+        }, 4000);
+      }
+    },
+  },
 };
 </script>
 

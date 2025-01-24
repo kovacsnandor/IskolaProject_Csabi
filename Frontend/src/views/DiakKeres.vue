@@ -15,13 +15,13 @@
       <thead>
         <tr>
           <th>#</th>
-          <th>osztálynév</th>
-          <th>nev</th>
-          <th>neme</th>
-          <th>született</th>
-          <th>helység</th>
-          <th>ösztöndíj</th>
-          <th>átlag</th>
+          <th>Osztálynév</th>
+          <th>Név</th>
+          <th>Nem</th>
+          <th>Születési idő</th>
+          <th>Helység</th>
+          <th>Ösztöndíj</th>
+          <th>Átlag</th>
         </tr>
       </thead>
       <tbody>
@@ -30,10 +30,14 @@
           <td data-label="Osztály">{{ getClassName(row.osztalyId) }}</td>
           <td data-label="Név">{{ row.nev }}</td>
           <td data-label="Nem">{{ row.neme ? "Férfi" : "Nő" }}</td>
-          <td data-label="Születési idő">{{ row.szuletett }}</td>
+          <td data-label="Születési idő">
+            {{ row.szuletett }} (<span class="eletkor">{{ getEletkor(row.szuletett) }}</span> éves)
+          </td>
           <td data-label="Helység">{{ row.helyseg }}</td>
-          <td data-label="Ösztöndíj">{{ row.osztondij }}</td>
-          <td data-label="Átlag" style="justify-content: space-between;">{{ row.atlag }}</td>
+          <td data-label="Ösztöndíj">{{ formatOsztondij(row.osztondij) }}</td>
+          <td data-label="Átlag" style="justify-content: space-between">
+            {{ row.atlag }}
+          </td>
         </tr>
       </tbody>
     </table>
@@ -112,7 +116,7 @@ export default {
       const response = await axios.get(url, headers);
       this.osztalyok = response.data.data;
     },
-    
+
     changePage(pageNumber) {
       this.currentPage = pageNumber;
       this.getDiaks();
@@ -125,6 +129,22 @@ export default {
       return osztaly ? osztaly.osztalyNev : "Nincs";
     },
 
+    formatOsztondij(ossz) {
+      return (
+        Math.round(ossz)
+          .toString()
+          .replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " Ft"
+      );
+    },
+
+    getEletkor(szuletett) {
+      const current = new Date();
+      const szulDate = new Date(szuletett);
+      const ageInMilliseconds = current - szulDate;
+      const ageInYears = ageInMilliseconds / (1000 * 60 * 60 * 24 * 365.25);
+      return Math.floor(ageInYears);
+    },
+
     goToPage(page) {
       this.currentPage = page;
     },
@@ -132,5 +152,9 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.eletkor {
+  color: #58c2ff;
+  font-weight: bold;
+}
 </style>
