@@ -12,6 +12,7 @@
                   v-model="user.email"
                   placeholder="Email*"
                   class="form-control"
+                  id="email"
                 />
               </div>
               <div class="form-group mb-3">
@@ -20,6 +21,7 @@
                   v-model="user.password"
                   placeholder="Password*"
                   class="form-control"
+                  id="password"
                 />
               </div>
               <div class="form-group mb-3">
