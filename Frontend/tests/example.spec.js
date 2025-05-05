@@ -3,59 +3,45 @@ import { test, expect } from '@playwright/test';
 
 const url = 'http://localhost:5173';
 
-// test('/: Loads home page', async ({ page }) => {
-//   await page.goto(`${url}/`);
-//   // await page.goto('http://localhost:5173/');
+test('/: Loads home page', async ({ page }) => {
+  await page.goto(`${url}/`);
+  // await page.goto('http://localhost:5173/');
 
-//   // Expect a title "to contain" a substring.
-//   await expect(page).toHaveTitle(/Iskola - Főoldal/);
-//   await expect(page.locator('h2')).toHaveText('Home');
-// });
+  // Expect a title "to contain" a substring.
+  await expect(page).toHaveTitle(/Iskola - Főoldal/);
+  await expect(page.locator('h2')).toHaveText('Home');
+});
 
-// test('Login with Admin', async ({ page }) => {
-//   // Nyisd meg a bejelentkezési oldalt
-//   await page.goto(`${url}/login`);
+test('Login with Admin', async ({ page }) => {
+  // Nyisd meg a bejelentkezési oldalt
+  await page.goto(`${url}/login`);
 
-//   // Töltsd ki az űrlapot
-//   await page.fill('input#email', 'test@example.com');
-//   await page.fill('input#password', '123');
-//   // await page.fill('input[name="email"]', 'test@example.com');
-//   // await page.fill('input[name="password"]', '123');
+  // Töltsd ki az űrlapot
+  await page.fill('input#email', 'test@example.com');
+  await page.fill('input#password', '123');
+  // await page.fill('input[name="email"]', 'test@example.com');
+  // await page.fill('input[name="password"]', '123');
 
-//   // Kattints a bejelentkezés gombra
-//   // await page.click('button[type="submit"]');
-//   await page.click('button:has-text("Login")');
+  // Kattints a bejelentkezés gombra
+  // await page.click('button[type="submit"]');
+  await page.click('button:has-text("Login")');
 
-//   // Ellenőrizd, hogy sikeres bejelentkezés után átirányították a felhasználót
-//   await expect(page).toHaveURL(`${url}/`);
-//   await expect(page.locator('h2')).toHaveText('Home');
+  // Ellenőrizd, hogy sikeres bejelentkezés után átirányították a felhasználót
+  await expect(page).toHaveURL(`${url}/`);
+  await expect(page.locator('h2')).toHaveText('Home');
 
-// });
+});
 
 test('Goto Kártyák', async ({ page }) => {
-  // Nyisd meg a bejelentkezési oldalt
-  // await page.goto(`${url}/login`);
-
-  // // Töltsd ki az űrlapot
-  // await page.fill('input#email', 'test@example.com');
-  // await page.fill('input#password', '123');
-  // // await page.fill('input[name="email"]', 'test@example.com');
-  // // await page.fill('input[name="password"]', '123');
-
-  // // Kattints a bejelentkezés gombra
-  // // await page.click('button[type="submit"]');
-  // await page.click('button:has-text("Login")');
-
-  // Nyisd meg a dropdown menüt az Iskola menüpontra kattintva
-  // Use a more specific selector for the "Iskola" menu item
+  
   await page.goto(`${url}/`);
-  await page.click('nav a:has-text("Iskola")');
+  
+
+  await page.click('a#navbarDropdown.nav-link.dropdown-toggle');
 
   // Wait for the dropdown menu to be visible
-  await expect(page.locator('nav .dropdown-menu:has(a:has-text("Kártyák"))')).toBeVisible();
-
-  // Click the "Kártyák" menu item
-  await page.click('nav a:has-text("Kártyák")');
+  await expect(page.locator('a#navbarDropdown.nav-link.dropdown-toggle')).toBeVisible();
+  await page.click('a:has-text("Kártyák")');
   await expect(page.locator('h2')).toHaveText('Kártyák');
   
 
